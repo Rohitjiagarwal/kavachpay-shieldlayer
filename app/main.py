@@ -669,6 +669,10 @@ if SETTINGS.dashboard_dir and Path(SETTINGS.dashboard_dir).is_dir():
     from fastapi.staticfiles import StaticFiles
 
     app.mount("/", StaticFiles(directory=SETTINGS.dashboard_dir, html=True), name="dashboard")
+else:
+    @app.api_route("/", methods=["GET", "HEAD"])
+    def root_health() -> dict:
+        return {"status": "ok", "service": "kavachpay-api"}
 
 
 if __name__ == "__main__":  # pragma: no cover

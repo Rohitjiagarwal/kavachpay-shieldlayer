@@ -286,8 +286,8 @@ class GeminiProvider(BaseLayer2Provider):
         timeout: float = 8.0,
     ):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
-        self.primary_model = primary_model or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-        self.fallback_model = fallback_model or os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-2.0-flash")
+        self.primary_model = primary_model or os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
+        self.fallback_model = fallback_model or os.environ.get("GEMINI_FALLBACK_MODEL", "gemini-flash-latest")
         self.timeout = timeout
 
     def _call_gemini(self, model: str, normalized_text: str, api_key: str) -> dict:

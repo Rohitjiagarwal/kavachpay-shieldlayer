@@ -55,3 +55,8 @@ def test_playground_works_with_auth_context():
         data = r.json()
         assert data["verdict"] == "allow"
         assert data["layer"] == "layer3"
+
+
+def test_root_head_health_for_render():
+    with TestClient(app) as client:
+        assert client.head("/").status_code == 200

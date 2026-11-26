@@ -36,7 +36,7 @@ def layer2_provider_label(env: dict | None = None) -> str:
     env = env or os.environ
     mode = env.get("LAYER2_PROVIDER", "auto").lower()
     if mode == "gemini" or (mode == "auto" and env.get("GEMINI_API_KEY")):
-        model = env.get("GEMINI_MODEL", "gemini-2.5-flash")
+        model = env.get("GEMINI_MODEL", "gemini-flash-lite-latest")
         return f"Gemini ({model})"
     if mode == "ollama":
         model = env.get("OLLAMA_MODEL", "qwen2.5:3b")

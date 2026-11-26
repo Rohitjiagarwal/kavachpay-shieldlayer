@@ -177,24 +177,27 @@ def seed_all() -> None:
 
 def ingest_kb() -> list:
     """Ingest the KavachPay knowledge base through the same secure pipeline."""
+    from shared import byok
+
     db.init_db()
     results = []
-    for md in sorted(KB_DIR.glob("*.md")):
-        internal = md.name.startswith("_internal")
-        visibility = "internal" if internal else "public"
-        text = md.read_text(encoding="utf-8")
-        text = text.replace("{CANARY_SYSPROMPT}", CANARIES.sysprompt)
-        text = text.replace("{CANARY_INTERNAL_DOC}", CANARIES.internal_doc)
-        # write the substituted text to a temp file and ingest it
-        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as tf:
-            tf.write(text)
-            tmp = tf.name
-        res = ingest_file(
-            tmp, owner="public", doc_title=md.stem.replace("_", " ").title(),
-            visibility=visibility, doc_id=f"kb-{md.stem}",
-        )
-        results.append(res)
-        Path(tmp).unlink(missing_ok=True)
+    with byok.disable_server_key():
+        for md in sorted(KB_DIR.glob("*.md")):
+            internal = md.name.startswith("_internal")
+            visibility = "internal" if internal else "public"
+            text = md.read_text(encoding="utf-8")
+            text = text.replace("{CANARY_SYSPROMPT}", CANARIES.sysprompt)
+            text = text.replace("{CANARY_INTERNAL_DOC}", CANARIES.internal_doc)
+            # write the substituted text to a temp file and ingest it
+            with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as tf:
+                tf.write(text)
+                tmp = tf.name
+            res = ingest_file(
+                tmp, owner="public", doc_title=md.stem.replace("_", " ").title(),
+                visibility=visibility, doc_id=f"kb-{md.stem}",
+            )
+            results.append(res)
+            Path(tmp).unlink(missing_ok=True)
     return results
 
 

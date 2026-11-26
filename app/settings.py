@@ -36,7 +36,7 @@ class Settings:
     gemini_key: str | None = os.environ.get("GEMINI_API_KEY") or None
     gemini_chat_model: str = os.environ.get("GEMINI_CHAT_MODEL", "gemini-flash-lite-latest")
     layer2_provider: str = os.environ.get("LAYER2_PROVIDER", "auto")
-    gemini_model: str = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    gemini_model: str = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
     layer2_allow_heuristic: bool = os.environ.get("LAYER2_ALLOW_HEURISTIC_FALLBACK", "true").lower() in ("true", "1", "yes")
     session_secret: str = os.environ.get("SESSION_SECRET", "dev-session-secret-change-me")
     seed: int = int(os.environ.get("SEED", "1337"))

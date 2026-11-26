@@ -60,7 +60,7 @@ Set these as Space **variables**. They override the Dockerfile defaults.
 | `DEMO_DAILY_LIMIT` | 250 | whole site per UTC day |
 | `GEMINI_CHAT_MODEL` | `gemini-flash-lite-latest` | chat model (also used for visitor keys) |
 | `LAYER2_PROVIDER` | `auto` | Layer 2 intent extractor (`auto` \| `gemini` \| `ollama` \| `heuristic`) |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Layer 2 primary Gemini extractor |
+| `GEMINI_MODEL` | `gemini-flash-lite-latest` | Layer 2 primary Gemini extractor |
 | `DEMO_RESET_MINUTES` | 20 | reseed the shared demo account after this much idle time |
 
 Counters live in memory, so a Space restart resets them, along with the demo
