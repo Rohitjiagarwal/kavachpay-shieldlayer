@@ -1,0 +1,48 @@
+{
+  "setups": {
+    "none": {
+      "label": "No guard",
+      "attacks_blocked_pct": 0.0,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "l3_block_share_pct": 0.0
+    },
+    "layer1": {
+      "label": "L1 Deterministic Funnel",
+      "attacks_blocked_pct": 57.7,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.11,
+      "p95_ms": 0.17,
+      "l3_block_share_pct": 0.0
+    },
+    "all3": {
+      "label": "All 3 layers (Zero-Judge)",
+      "attacks_blocked_pct": 57.7,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.16,
+      "p95_ms": 0.27,
+      "l3_block_share_pct": 0.0
+    }
+  },
+  "n_attacks": 26,
+  "n_safe": 15,
+  "per_owasp": {
+    "ASI01": 0.0,
+    "ASI02": 100.0,
+    "ASI03": 0.0,
+    "ASI06": 100.0,
+    "ASI09": 0.0,
+    "LLM01": 100.0,
+    "LLM02": 33.3,
+    "LLM04": 0.0,
+    "LLM05": 50.0,
+    "LLM06": 0.0,
+    "LLM07": 50.0,
+    "LLM10": 100.0
+  },
+  "scanner_mode": "in-process",
+  "pipeline": "3-layer-zero-judge",
+  "layer2_provider": "Deterministic Heuristic Extractor",
+  "generated_at": "2026-11-26T14:16:23"
+}

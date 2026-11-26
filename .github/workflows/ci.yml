@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Set up Python
+        run: uv venv .venv
+      - name: Install
+        run: uv pip install -e ".[dev,app]"
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run mypy shared shield app || true
+      - name: Tests
+        env:
+          LAYER2_PROVIDER: heuristic
+          PARSER: pymupdf
+        run: uv run pytest --cov=shield --cov=app --cov-report=term-missing
+      - name: Security audit
+        run: uv run pip-audit || true
+      - name: Attack smoke test (3-layer zero-judge, no API key)
+        env:
+          LAYER2_PROVIDER: heuristic
+        run: |
+          uv run python -m attacks.run_attacks
+          uv run python - <<'PY'
+          # fail if attacks-blocked drops or safe-blocked rises >2pts vs baseline
+          import json, pathlib, sys
+          res = json.loads(pathlib.Path("attacks/results/latest.json").read_text())
+          base_p = pathlib.Path("attacks/results/baseline.json")
+          if not base_p.exists():
+              print("no baseline; skipping regression gate"); sys.exit(0)
+          base = json.loads(base_p.read_text())
+          for setup in ("layer1", "all3"):
+              if setup not in base.get("setups", {}):
+                  continue
+              a0 = base["setups"][setup]["attacks_blocked_pct"]
+              a1 = res["setups"][setup]["attacks_blocked_pct"]
+              s0 = base["setups"][setup]["safe_blocked_pct"]
+              s1 = res["setups"][setup]["safe_blocked_pct"]
+              assert a1 >= a0 - 2, f"{setup}: attacks blocked dropped {a0}->{a1}"
+              assert s1 <= s0 + 2, f"{setup}: safe blocked rose {s0}->{s1}"
+          print("attack regression gate passed")
+          PY
+
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: dashboard/pnpm-lock.yaml }
+      - run: cd dashboard && pnpm install --frozen-lockfile
+      - run: cd dashboard && pnpm exec tsc --noEmit
+      - name: Static export (what the live demo serves)
+        run: cd dashboard && STATIC_EXPORT=1 NEXT_PUBLIC_SAME_ORIGIN=1 pnpm build
+
+  eval-nightly:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv venv .venv && uv pip install -e ".[dev,app,ml,judge]"
+      - name: RAG eval gate
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: uv run python eval/run_eval.py --gate

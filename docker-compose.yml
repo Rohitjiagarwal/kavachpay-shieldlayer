@@ -1,0 +1,29 @@
+# KavachPay: one container serves the API + dashboard on http://localhost:7860.
+#   docker compose up --build
+# Reads secrets from .env (gitignored).
+
+name: kavachpay
+
+services:
+  kavachpay:
+    build:
+      context: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PUBLIC_DEMO: "${PUBLIC_DEMO:-0}"          # 1 = 4 free requests per visitor
+      CHAT_PROVIDER: "${CHAT_PROVIDER:-gemini}"
+      LAYER2_PROVIDER: "${LAYER2_PROVIDER:-auto}"
+      TRUST_PROXY: "0"
+    ports: ["127.0.0.1:7860:7860"]
+
+  # Optional: the Shield funnel as its own HTTP service (POST /scan).
+  #   docker compose --profile shield up --build
+  shield:
+    profiles: ["shield"]
+    build: { context: ., dockerfile: shield/Dockerfile }
+    env_file:
+      - path: .env
+        required: false
+    ports: ["127.0.0.1:8090:8090"]

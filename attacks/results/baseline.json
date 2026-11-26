@@ -1,0 +1,64 @@
+{
+  "setups": {
+    "none": {
+      "label": "No guard",
+      "attacks_blocked_pct": 0.0,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "judge_share_pct": 0.0
+    },
+    "regex": {
+      "label": "Regex only",
+      "attacks_blocked_pct": 65.4,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.05,
+      "p95_ms": 0.13,
+      "judge_share_pct": 0.0
+    },
+    "regex+clf": {
+      "label": "Regex + classifier",
+      "attacks_blocked_pct": 65.4,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.08,
+      "p95_ms": 0.17,
+      "judge_share_pct": 0.0
+    },
+    "all3": {
+      "label": "All 3 layers",
+      "attacks_blocked_pct": 69.2,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.08,
+      "p95_ms": 0.18,
+      "judge_share_pct": 2.4
+    },
+    "judge_only": {
+      "label": "Judge everything",
+      "attacks_blocked_pct": 69.2,
+      "safe_blocked_pct": 0.0,
+      "p50_ms": 0.04,
+      "p95_ms": 0.3,
+      "judge_share_pct": 100.0
+    }
+  },
+  "n_attacks": 26,
+  "n_safe": 15,
+  "per_owasp": {
+    "ASI01": 0.0,
+    "ASI02": 100.0,
+    "ASI03": 0.0,
+    "ASI06": 100.0,
+    "ASI09": 0.0,
+    "LLM01": 100.0,
+    "LLM02": 66.7,
+    "LLM04": 0.0,
+    "LLM05": 50.0,
+    "LLM06": 0.0,
+    "LLM07": 100.0,
+    "LLM10": 100.0
+  },
+  "scanner_mode": "in-process",
+  "classifier_mode": "fallback",
+  "judge_label": "Stub (offline rules)",
+  "generated_at": "2026-11-20T21:44:17"
+}

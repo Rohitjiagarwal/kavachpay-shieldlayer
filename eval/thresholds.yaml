@@ -1,0 +1,6 @@
+# Release gate for the RAG quality eval. run_eval.py --gate fails if any metric
+# is below its threshold.
+retrieval_hit: 0.90   # an expected page is among the sources the model saw
+citation_ok: 0.80     # every cited page of the expected doc is an expected page
+answer_ok: 0.80       # the answer contains every must_contain string
+status_ok: 0.85       # answered / not_found / blocked is the expected outcome

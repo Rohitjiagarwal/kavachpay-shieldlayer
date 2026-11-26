@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# data / artifacts
+app/data/*.db
+app/data/uploads/
+model/bundles/*/
+!model/bundles/.gitkeep
+attacks/results/*.json
+attacks/results/*.md
+!attacks/results/baseline.json
+!attacks/results/latest.json
+eval/reports/*.json
+
+# node
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/.next-export/
+dashboard/tsconfig.tsbuildinfo
+
+# env / secrets
+.env
+

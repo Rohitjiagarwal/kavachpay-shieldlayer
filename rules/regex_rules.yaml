@@ -1,0 +1,237 @@
+# ShieldLayer — Stage 1C Targeted Regex Rules (ReDoS-safe)
+#
+# Lean, compiled regex patterns for structural, bounded, or variable-gap patterns
+# that Aho-Corasick cannot express.
+# Bounded quantifiers only — zero nested quantifiers or unbounded .* spans.
+# Total rules: 22 (strictly adhering to the 15-25 lean rule budget).
+
+version: 1
+
+rules:
+  # --- 1. Flexible Instruction Override ----------------------------------- #
+  - id: override_ignore_previous
+    name: "Flexible Instruction Override"
+    category: "instruction_override"
+    severity: "high"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:ignore|disregard|forget|override|bypass)\s+(?:all\s+|any\s+|the\s+)?(?:previous|prior|above|earlier|preceding)\s+(?:instructions?|rules?|prompts?|directives?|guidelines?)\b'
+    description: "Flexible instruction override with variable adjectives"
+    false_positive_notes: "Requires verb + temporal qualifier + target instruction noun"
+
+  - id: override_new_instructions
+    name: "New Instructions Header"
+    category: "instruction_override"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "i"
+    pattern: '\b(?:new|updated|revised)\s+(?:instructions?|rules?|system\s+prompt)\s*[:\-]'
+    description: "Attacker announces a replacement instruction set"
+    false_positive_notes: "Requires colon/dash delimiter after instruction noun"
+
+  - id: override_you_must_now
+    name: "Coercive Model Re-instruction"
+    category: "instruction_override"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\byou\s+(?:must|will|shall|are\s+required\s+to)\s+now\b.{0,40}\b(?:ignore|forget|reveal|disregard|obey)\b'
+    description: "Coercive command forcing the model to disregard rules"
+    false_positive_notes: "Bounded gap of 40 chars max"
+
+  - id: override_confidentiality
+    name: "Confidentiality Override"
+    category: "instruction_override"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:this\s+(?:\w+\s+)?(?:overrides?|supersedes?)|override)\b.{0,30}\b(?:confidentiality|previous|safety|your\s+(?:rules?|instructions?))\b'
+    description: "Claims to override confidentiality or safety protocols"
+    false_positive_notes: "Bounded gap of 30 chars"
+
+  # --- 2. Role-Switching & Fake Delimiter Tags ---------------------------- #
+  - id: role_switch_tags
+    name: "Fake Structural Delimiter Tags"
+    category: "role_switching"
+    severity: "high"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '<\s*(?:system|admin|assistant|developer|tool_response|instructions?)\s*>[\s\S]{0,500}?<\s*/\s*(?:system|admin|assistant|developer|tool_response|instructions?)\s*>'
+    description: "XML role tags enclosing instructions to simulate system context"
+    false_positive_notes: "Bounded body span of 500 chars max"
+
+  - id: delim_closing_system
+    name: "Fake Closing System Tag"
+    category: "role_switching"
+    severity: "high"
+    owasp_ref: "LLM01"
+    flags: "i"
+    pattern: '</\s*(?:system|instructions?|system_prompt|developer)\s*>'
+    description: "Fake closing tag attempting to break out of system prompt"
+    false_positive_notes: "Specific closing tags only"
+
+  - id: delim_role_header
+    name: "Injected Role Header"
+    category: "role_switching"
+    severity: "high"
+    owasp_ref: "LLM01"
+    flags: "im"
+    pattern: '(?:^|\n)\s*(?:system|assistant|developer)\s*:\s*(?:you\s+are|ignore|override|execute|call)'
+    description: "Role prefix at start of line attempting to mimic transcript turn"
+    false_positive_notes: "Requires newline anchor and command verb"
+
+  # --- 3. Flexible Jailbreak / Persona Reassignment ---------------------- #
+  - id: role_dan
+    name: "Flexible Persona Reassignment"
+    category: "jailbreak"
+    severity: "high"
+    owasp_ref: "LLM01"
+    flags: "i"
+    pattern: '\b(?:you\s+are\s+now|act\s+as|pretend\s+to\s+be|switch\s+to)\s+(?:an?\s+)?(?:unrestricted|unfiltered|uncensored|jailbroken|evil|dan)\b'
+    description: "Prompt coercing model into an unrestricted jailbroken persona"
+    false_positive_notes: "Requires transition verb followed by persona qualifier"
+
+  - id: role_no_restrictions
+    name: "Unrestricted Claims"
+    category: "jailbreak"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:no\s+(?:longer\s+)?(?:bound|restricted|limited)\s+by|without\s+(?:any\s+)?(?:restrictions?|rules?|filters?|guidelines?)|ignore\s+your\s+(?:guidelines?|policies|safety))\b'
+    description: "Claims the model is free of safety rules or restrictions"
+    false_positive_notes: "Covers standard jailbreak phrasing"
+
+  # --- 4. Stealth & Indirect Prompt Injection ---------------------------- #
+  - id: stealth_do_not_tell
+    name: "Stealth Exfiltration Directive"
+    category: "stealth"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:do\s+not|don''t|never)\s+(?:mention|tell|inform|show|reveal)\b.{0,30}\b(?:to\s+)?(?:the\s+)?(?:user|human|operator)\b'
+    description: "Indirect injection concealing results from user"
+    false_positive_notes: "Requires negative operator + communication verb + user noun"
+
+  - id: doc_when_you_read_this
+    name: "Document-Embedded AI Directive"
+    category: "indirect_injection"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:if|when)\s+you\s+(?:are\s+)?(?:an?\s+)?(?:ai|assistant|language\s+model|reading\s+this)\b.{0,40}\b(?:then|you\s+must|please|do)\b'
+    description: "Conditional instruction aimed at an AI reader of a document"
+    false_positive_notes: "Bounded gap of 40 chars max"
+
+  - id: doc_assistant_note
+    name: "Document-Planted Assistant Bracket"
+    category: "indirect_injection"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "i"
+    pattern: '\[(?:system|assistant|ai|agent|important|note\s+to\s+(?:the\s+)?(?:ai|assistant|model))[^\]]{0,40}\]'
+    description: "Bracketed note to the AI planted in external files"
+    false_positive_notes: "Bounded bracket length of 40 chars"
+
+  - id: doc_mandatory_procedure
+    name: "Fake Mandatory Compliance Procedure"
+    category: "indirect_injection"
+    severity: "medium"
+    owasp_ref: "ASI06"
+    flags: "is"
+    pattern: '\b(?:mandatory|required)\s+(?:compliance\s+)?(?:procedure|protocol|verification|step)\b.{0,60}\b(?:execute|run|call|perform)\b'
+    description: "Phony compliance procedure forcing the agent to execute actions"
+    false_positive_notes: "Bounded gap of 60 chars"
+
+  # --- 5. Markdown / Image Data Exfiltration ------------------------------ #
+  - id: exfil_markdown_image
+    name: "Markdown Image Exfiltration"
+    category: "data_exfiltration"
+    severity: "high"
+    owasp_ref: "LLM05"
+    flags: "i"
+    pattern: '!\[[^\]]{0,100}\]\(https?://[^\s)]{1,200}\?[^\s)]{1,300}\)'
+    description: "Markdown image smuggling exfiltrated context via URL query parameters"
+    false_positive_notes: "Requires markdown image syntax with URL query params"
+
+  # --- 6. Explicit Obfuscation & Decode Directives ------------------------ #
+  - id: obfuscation_decode_directive
+    name: "Decode and Obey Directive"
+    category: "obfuscation"
+    severity: "medium"
+    owasp_ref: "LLM01"
+    flags: "is"
+    pattern: '\b(?:decode|decrypt|deobfuscate|reverse|rot13)\s+(?:the\s+following|this)\s+(?:base64|hex|string|text|payload)?\s*(?:and\s+(?:execute|follow|run|obey))?\b'
+    description: "Command asking model to decode an obfuscated payload and follow it"
+    false_positive_notes: "Covers base64, hex, and rot13 decode instructions"
+
+  # --- 7. Agentic Parameter Tampering & Privilege Escalation -------------- #
+  - id: agentic_privilege_escalation
+    name: "Unauthorized Administrative Tool Call"
+    category: "agentic_privilege_escalation"
+    severity: "critical"
+    owasp_ref: "ASI02"
+    flags: "i"
+    pattern: '\b(?:delete_user|grant_access|update_role|exec_sql|run_command)\s*\([^)]{0,200}(?:role|admin|sudo|root|privilege)[^)]{0,100}\)'
+    description: "Tool invocation attempting to inject administrative roles or privileges"
+    false_positive_notes: "Requires administrative function call syntax with privileged args"
+
+  - id: agentic_path_traversal
+    name: "Path Traversal Sequence"
+    category: "agentic_tool_abuse"
+    severity: "high"
+    owasp_ref: "ASI02"
+    flags: "i"
+    pattern: '(?:\.\./|\.\.\\){2,}'
+    description: "Multi-level directory traversal escape sequence"
+    false_positive_notes: "Requires two or more consecutive traversal hops"
+
+  - id: agentic_command_chaining
+    name: "Shell Command Chaining"
+    category: "agentic_tool_abuse"
+    severity: "critical"
+    owasp_ref: "ASI02"
+    flags: "i"
+    pattern: '[;&|`]\s*(?:rm|curl|wget|nc|bash|sh|python|powershell)\b'
+    description: "Shell command delimiter chaining execution of system binaries"
+    false_positive_notes: "Requires shell chaining symbol and critical binary name"
+
+  - id: agentic_ssrf_metadata
+    name: "SSRF Localhost / Cloud Metadata URL"
+    category: "ssrf"
+    severity: "high"
+    owasp_ref: "LLM06"
+    flags: "i"
+    pattern: 'https?://(?:169\.254\.169\.254|127\.0\.0\.1|localhost|0\.0\.0\.0|\[::1\])(?::\d+)?/'
+    description: "HTTP/HTTPS URL targeting link-local metadata or loopback IP"
+    false_positive_notes: "Strict IP/hostname matching"
+
+  # --- 8. System Prompt Extraction & Secret Fishing ---------------------- #
+  - id: extract_system_prompt
+    name: "Direct System Prompt Extraction"
+    category: "system_prompt_leakage"
+    severity: "high"
+    owasp_ref: "LLM07"
+    flags: "is"
+    pattern: '\b(?:what|show|reveal|tell\s+me|print|repeat)\b.{0,30}\b(?:your\s+)?(?:system\s+prompt|initial\s+instructions?|developer\s+(?:message|prompt)|the\s+prompt\s+above)\b'
+    description: "Direct request probing for the system prompt or developer instructions"
+    false_positive_notes: "Requires extraction verb and system prompt noun"
+
+  - id: secret_reveal
+    name: "Secret Canary Fishing"
+    category: "credential_access"
+    severity: "high"
+    owasp_ref: "LLM07"
+    flags: "is"
+    pattern: '\b(?:reveal|show|print|give\s+me|what\s+is)\b.{0,30}\b(?:the\s+)?(?:api[\s_-]?key|secret|password|token|credential|canary|internal\s+(?:code|reference))\b'
+    description: "Fishing for secrets, API keys or planted canary tokens"
+    false_positive_notes: "Requires reveal verb + secret target noun"
+
+  - id: length_over_4000
+    name: "Resource Exhaustion Length"
+    category: "resource_exhaustion"
+    severity: "low"
+    owasp_ref: "LLM10"
+    flags: "s"
+    pattern: '(?s).{4001,}'
+    description: "Message over 4,000 characters causing unbounded token consumption"
+    false_positive_notes: "Length check only"

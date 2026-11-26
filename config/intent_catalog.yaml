@@ -1,0 +1,126 @@
+# KavachPay — Domain Intent Catalog
+# Used by Layer 2 (Intent Extractor) and Layer 3 (Policy & Symbolic Gate).
+
+version: "1.0"
+
+intents:
+  general_faq:
+    description: "General questions about UPI, payments, platform policies, support hours, or platform features."
+    parameters:
+      topic:
+        type: string
+        description: "The topic being asked about (e.g. refunds, pin_safety, limits)"
+    allowed_roles: ["user", "admin", "anonymous"]
+    keywords: ["faq", "help", "how to", "policy", "what is", "support", "hours", "guide", "info", "explain"]
+
+  check_balance:
+    description: "Check the current balance of the user's UPI or bank account."
+    parameters:
+      account_id:
+        type: string
+        description: "Target account identifier"
+    allowed_roles: ["user", "admin"]
+    requires_abac: true
+    keywords: ["balance", "check balance", "how much money", "account balance", "wallet balance", "available funds"]
+
+  view_transactions:
+    description: "View recent payments, transaction history, debit/credit entries, or lookup a specific transaction."
+    parameters:
+      limit:
+        type: integer
+        description: "Maximum number of transactions to return"
+      status:
+        type: string
+        description: "Transaction status filter (e.g. success, failed, pending)"
+      txn_id:
+        type: string
+        description: "Specific transaction reference ID"
+    allowed_roles: ["user", "admin"]
+    requires_abac: true
+    keywords: ["transactions", "recent transactions", "history", "statement", "payments", "debited", "failed payment", "txn", "transfer history"]
+
+  freeze_upi_account:
+    description: "Temporarily freeze or block UPI payments on an account to prevent fraud or unauthorized charges."
+    parameters:
+      account_id:
+        type: string
+        description: "Account to freeze"
+      reason:
+        type: string
+        description: "Reason for freezing UPI (e.g. stolen phone, suspected fraud)"
+    allowed_roles: ["user", "admin"]
+    requires_abac: true
+    requires_confirmation: true
+    keywords: ["freeze upi", "block upi", "stop payments", "suspend upi", "lock account", "compromised", "stolen phone", "block my card"]
+
+  raise_dispute:
+    description: "Raise a dispute or claim a refund for a failed, incorrect, or fraudulent transaction."
+    parameters:
+      txn_id:
+        type: string
+        description: "Transaction reference ID to dispute (e.g. TXN-1001)"
+      reason:
+        type: string
+        description: "Explanation of the dispute"
+    allowed_roles: ["user", "admin"]
+    requires_abac: true
+    keywords: ["dispute", "raise dispute", "chargeback", "claim refund", "unauthorized transaction", "money deducted", "wrong debit"]
+
+  admin_unblock_upi:
+    description: "Administrative action to reactivate or unblock a customer's suspended UPI service."
+    parameters:
+      target_customer:
+        type: string
+        description: "Customer or account identifier to unblock"
+    allowed_roles: ["admin"]
+    requires_abac: false
+    keywords: ["unblock upi", "reactivate upi", "re-enable upi", "enable upi", "lift freeze", "admin unblock"]
+
+  admin_list_accounts:
+    description: "Administrative action to list all customer accounts and their status."
+    parameters:
+      filter:
+        type: string
+        description: "Optional filter string (status or name)"
+    allowed_roles: ["admin"]
+    requires_abac: false
+    keywords: ["list accounts", "view all accounts", "all customers", "admin accounts", "show users"]
+
+  admin_security_summary:
+    description: "Administrative action to view security summary, quarantine stats, and threat detections."
+    parameters: {}
+    allowed_roles: ["admin"]
+    requires_abac: false
+    keywords: ["security summary", "quarantine stats", "threat report", "security logs", "threat stats", "admin summary"]
+
+  update_role:
+    description: "Administrative action to update user roles or permissions (privileged escalation target)."
+    parameters:
+      user_id:
+        type: string
+        description: "User to modify"
+      new_role:
+        type: string
+        description: "Target role (e.g. admin, auditor)"
+    allowed_roles: ["admin"]
+    requires_abac: false
+    keywords: ["update role", "change role", "grant admin", "make admin", "elevate", "assign role", "grant permissions"]
+
+  delete_user:
+    description: "Administrative action to delete or purge a user account."
+    parameters:
+      user_id:
+        type: string
+        description: "User ID to delete"
+    allowed_roles: ["admin"]
+    requires_abac: false
+    keywords: ["delete user", "remove user", "purge account", "delete account", "drop user"]
+
+  out_of_scope:
+    description: "Requests completely unrelated to banking, payments, account support, or assistant capabilities."
+    parameters:
+      topic:
+        type: string
+        description: "General topic"
+    allowed_roles: ["user", "admin", "anonymous"]
+    keywords: ["weather", "poem", "joke", "recipe", "write code", "translate to french"]
